@@ -54,7 +54,7 @@ namespace JavaScriptEngineSwitcher.Yantra
 		/// <summary>
 		/// Version of original JS engine
 		/// </summary>
-		private const string EngineVersion = "1.2.334";
+		private const string EngineVersion = "1.2.342";
 
 		/// <summary>
 		/// Regular expression for working with the error message
@@ -332,7 +332,7 @@ namespace JavaScriptEngineSwitcher.Yantra
 				string messageWithCallStack = type == JsErrorType.Syntax ?
 					originalException.JSStackTrace.AsStringOrDefault()
 					:
-					errorValue.Stack ?? errorValue[OriginalKeyString.stack].AsStringOrDefault()
+					errorValue[OriginalKeyString.stack].AsStringOrDefault()
 					;
 				string rawCallStack = GetRawCallStack(message, messageWithType, messageWithCallStack);
 
@@ -395,8 +395,18 @@ namespace JavaScriptEngineSwitcher.Yantra
 
 		private static string GetRawCallStack(string message, string messageWithType, string messageWithCallStack)
 		{
-			string baseMessage = messageWithCallStack.StartsWith(messageWithType) ? messageWithType : message;
-			string rawCallStack = JsErrorHelpers.GetErrorLocationFromMessage(messageWithCallStack, baseMessage);
+			const string errorFunctionTypePrefix = "Function: ";
+			string processedMessageWithCallStack = messageWithCallStack;
+
+			if (messageWithCallStack.StartsWith(errorFunctionTypePrefix))
+			{
+				processedMessageWithCallStack = messageWithCallStack.Substring(errorFunctionTypePrefix.Length);
+			}
+
+			string baseMessage = processedMessageWithCallStack.StartsWith(messageWithType) ?
+				messageWithType : message;
+			string rawCallStack = JsErrorHelpers.GetErrorLocationFromMessage(processedMessageWithCallStack,
+				baseMessage);
 
 			return rawCallStack;
 		}
